@@ -7,5 +7,4 @@ RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 ADD customersvc /code/customersvc
 ADD tests /code/tests
-ADD app.py /code/
-ENTRYPOINT ["python", "/code/app.py"]
+ENTRYPOINT ["python", "-m", "customersvc.app"]
