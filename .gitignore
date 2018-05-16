@@ -103,3 +103,5 @@ ENV/
 # database data
 ./pgdata/*
 
+# Vim files
+*.swp
