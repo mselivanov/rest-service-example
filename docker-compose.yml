@@ -28,3 +28,6 @@ services:
                     FLASK_APP: /code/customersvc/app.py
             depends_on:
              - db
+            volumes:
+              - ./app/migrations:/code/migrations
+
