@@ -1,5 +1,6 @@
-flask>=1.0
+flask==1.0
 flask-sqlalchemy
 flask-migrate
 flask-restful
 psycopg2
+marshmallow
