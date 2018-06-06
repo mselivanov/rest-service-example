@@ -4,6 +4,7 @@ import json
 import sqlalchemy.dialects.postgresql as pgd
 from customersvc import db
 
+
 def create_customer(attributes_dict):
     customer = Customer()
     customer.customer_id = str(uuid.uuid1())
@@ -18,7 +19,7 @@ def get_customer_by_id(customer_id):
 
 
 def update_customer(customer):
-    customer_entity = Customer.query.get(customer["customer_id"])
+    customer_entity = get_customer_by_id(customer["customer_id"])
     if customer_entity:
         customer_entity.name = customer["name"]
         customer_entity.site_code = customer["site_code"]
