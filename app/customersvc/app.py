@@ -26,6 +26,29 @@ class CustomerResponse(object):
     Class implements customer response
     """
     _attributes = ["status", "message", "data"]
+    _response_constants = {
+        "SUCCESS": {
+            "code": 200,
+            "message": "Success"
+        },
+        "CREATED": {
+            "code": 201,
+            "message": "Successfully created"
+        },
+        "NOT_FOUND": {
+            "code": 404,
+            "message": "Resource not found"
+        },
+        "BAD_REQUEST": {
+            "code": 400,
+            "message": "Bad request"
+        },
+        "VALIDATION_ERROR": {
+            "code": 422,
+            "message": "Validation error"
+        }
+
+    }
 
     def __init__(self, status, message, data):
         self.status = status
@@ -33,29 +56,38 @@ class CustomerResponse(object):
         self.data = data
 
     @classmethod
-    def success(cls, data=None):
+    def create_response(cls, response_keyword, status=None, message=None,
+                        data=None):
+        "Function creates response object"
+        _status = status if status else cls._response_constants[response_keyword]["code"]
+        _message = message if message else cls._response_constants[response_keyword]["message"]
+        _data = data if data else None
+        return cls(_status, _message, _data)
+
+    @classmethod
+    def success(cls, message="Success", data=None):
         "Creates response with status 200 and success message"
-        return cls(200, "Success", data)
+        return cls.create_response("SUCCESS", message=message, data=data)
 
     @classmethod
-    def created(cls, data):
+    def created(cls, message="Successfully created", data=None):
         "Creates response with status 201 and success message"
-        return cls(201, "Successfully created", data)
+        return cls.create_response("CREATED", message=message, data=data)
 
     @classmethod
-    def not_found(cls, message):
+    def not_found(cls, message=None, data=None):
         "Creates response with status 404 and provided message"
-        return cls(404, message, None)
+        return cls.create_response("NOT_FOUND", message=message, data=data)
 
     @classmethod
-    def bad_request(cls, message):
+    def bad_request(cls, message=None, data=None):
         "Creates response with status 400 and provided message"
-        return cls(400, message, None)
+        return cls.create_response("BAD_REQUEST", message=message, data=data)
 
     @classmethod
-    def validation_error(cls, errors):
+    def validation_error(cls, message=None, data=None):
         "Creates response with status 422 and provided list of errors"
-        return cls(422, "Validation error", errors)
+        return cls.create_response("VALIDATION_ERROR", message=message, data=data)
 
     def as_dict(self):
         "Returns response attributes as dict object"
@@ -76,7 +108,7 @@ class CustomerResource(Resource):
         if customer:
             customer_response.data = _CUSTOMER_SCHEMA.dump(customer).data
         else:
-            customer_response = CustomerResponse.not_found("Customer with id ="\
+            customer_response = CustomerResponse.not_found(message="Customer with id ="\
                                                            "{0} isn't found".format(customer_id))
         return customer_response.as_dict(), customer_response.status
 
@@ -132,7 +164,7 @@ class CustomerCollectionResource(Resource):
         customer_entity = create_customer(data.data)
         db.session.add(customer_entity)
         db.session.commit()
-        customer_response = CustomerResponse.created(_CUSTOMER_SCHEMA.dump(customer_entity).data)
+        customer_response = CustomerResponse.created(data=_CUSTOMER_SCHEMA.dump(customer_entity).data)
         return customer_response.as_dict(), customer_response.status
 
 
