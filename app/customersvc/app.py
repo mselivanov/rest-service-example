@@ -5,11 +5,12 @@ Module implements the following functionality:
 - validation
 """
 
-from customersvc import FLASK_APP, api, Resource, request, db
-from customersvc import Schema, m_fields
-from customersvc.models.customer_models import create_customer
-from customersvc.models.customer_models import get_customer_by_id, update_customer
-
+from flask import request
+from flask_restful import Resource
+from marshmallow import ValidationError
+from marshmallow import Schema, fields as m_fields
+from customersvc import FLASK_APP, API
+from customersvc.data.data import DATA_SERVICE
 
 class CustomerSchema(Schema):
     """
@@ -104,7 +105,7 @@ class CustomerResource(Resource):
     def get(self, customer_id):
         "Method for handling get request for customer resource"
         customer_response = CustomerResponse.success()
-        customer = get_customer_by_id(customer_id)
+        customer = DATA_SERVICE.read(customer_id)
         if customer:
             customer_response.data = _CUSTOMER_SCHEMA.dump(customer).data
         else:
@@ -121,14 +122,13 @@ class CustomerResource(Resource):
         try:
             data = _CUSTOMER_SCHEMA.load(json_data)
         except ValidationError as err:
-            return CustomerResponse.validation_error(err.messages).as_dict()
-        customer_entity = update_customer(data.data)
+            return CustomerResponse.validation_error(data=err.messages).as_dict()
+        customer_entity = DATA_SERVICE.update(data.data)
         customer_response = CustomerResponse.success()
         if customer_entity:
-            db.session.commit()
             customer_response.data = _CUSTOMER_SCHEMA.dump(customer_entity).data
         else:
-            customer_response = CustomerResponse.not_found("Customer with id = {0} "\
+            customer_response = CustomerResponse.not_found("Customer with id {0} "\
                                                            "isn't found".format(customer_id))
         return customer_response.as_dict(), customer_response.status
 
@@ -136,11 +136,9 @@ class CustomerResource(Resource):
     def delete(self, customer_id):
         "Method for handling delete request for customer resource"
         customer_response = CustomerResponse.success()
-        customer_entity = get_customer_by_id(customer_id)
+        customer_entity = DATA_SERVICE.delete(customer_id)
         if customer_entity:
             customer_response.data = _CUSTOMER_SCHEMA.dump(customer_entity).data
-            db.session.delete(customer_entity)
-            db.session.commit()
         else:
             customer_response = CustomerResponse.not_found("Customer with id = {0} "\
                                                            "isn't found".format(customer_id))
@@ -160,16 +158,15 @@ class CustomerCollectionResource(Resource):
         try:
             data = _CUSTOMER_SCHEMA.load(json_data)
         except ValidationError as err:
-            return CustomerResponse.validation_error(err.messages).as_dict()
-        customer_entity = create_customer(data.data)
-        db.session.add(customer_entity)
-        db.session.commit()
-        customer_response = CustomerResponse.created(data=_CUSTOMER_SCHEMA.dump(customer_entity).data)
+            return CustomerResponse.validation_error(data=err.messages).as_dict()
+        customer_entity = DATA_SERVICE.create(data.data)
+        customer_response = CustomerResponse.created(
+            data=_CUSTOMER_SCHEMA.dump(customer_entity).data)
         return customer_response.as_dict(), customer_response.status
 
 
-api.add_resource(CustomerResource, "/customers/<string:customer_id>", endpoint="customer")
-api.add_resource(CustomerCollectionResource, "/customers/", endpoint="customers")
+API.add_resource(CustomerResource, "/customers/<string:customer_id>", endpoint="customer")
+API.add_resource(CustomerCollectionResource, "/customers/", endpoint="customers")
 
 if __name__ == "__main__":
     FLASK_APP.run(host="0.0.0.0", port=8080)
