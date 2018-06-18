@@ -3,8 +3,10 @@ Module for testing app module
 """
 
 import unittest
+from unittest.mock import MagicMock, patch
 import testcontext
 from customersvc.app import CustomerResponse
+import customersvc.app
 
 class CustomerResponseTest(unittest.TestCase):
     "Class for testing CustomerResponse class"
@@ -74,6 +76,29 @@ class CustomerResponseTest(unittest.TestCase):
         self.assertEqual(expected_dict, customer_response_dict,
                          msg="Expected: {0}. Actual: {1}"
                          .format(expected_dict, customer_response_dict))
+
+
+class CustomerCollectionResourceTest(unittest.TestCase):
+    "Class for testing CustomerCollectionResource class"
+
+    _patches = {"DATA_SERVICE": customersvc.app.DATA_SERVICE}
+
+    def setUp(self):
+        "Set up actions"
+        customersvc.app.FLASK_APP.config["TESTING"] = True
+        self._patches["DATA_SERVICE"] = patch("customersvc.data.data.CustomerDataService")
+        customersvc.app.DATA_SERVICE = self._patches["DATA_SERVICE"].start()
+
+    def tearDown(self):
+        "Tear down actions"
+        for key in self._patches:
+            self._patches[key].stop()
+
+    def test_post_successfull_creation(self):
+        "Test successfull customer creation"
+        with customersvc.app.FLASK_APP.app_context():
+            resource = customersvc.app.CustomerResource()
+            customer = resource.get("e6c53676-6af2-11e8-99b8-0242ac130003")
 
 if __name__ == "__main__":
     unittest.main()

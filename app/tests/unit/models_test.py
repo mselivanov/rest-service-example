@@ -13,9 +13,8 @@ class CustomerModelTest(unittest.TestCase):
     Class contains unit tests for customer models
     """
     _customer_attributes = json.load(open(join(dirname(__file__),
-                                               "..", "integration",
-                                               "test_customer01.json")))
-    _customer_attributes["customer_id"] = "db4711bc-6993-11e8-adc0-fa7ae01bbebc"
+                                               "data",
+                                               "test_customer02_id.json")))
 
     def test_customer_from_dict(self):
         "Test for creating customer object from dict"

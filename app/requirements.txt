@@ -3,4 +3,4 @@ flask-sqlalchemy
 flask-migrate
 flask-restful
 psycopg2
-marshmallow
+marshmallow==3.0.0b11
