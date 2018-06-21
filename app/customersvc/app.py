@@ -8,16 +8,16 @@ Module implements the following functionality:
 from functools import wraps
 from flask import request
 from flask_restful import Resource
-from marshmallow import Schema
-from marshmallow import fields as m_fields
 from marshmallow.exceptions import ValidationError
 
 from customersvc import API, FLASK_APP
 from customersvc.data.data import DATA_SERVICE
+from customersvc.models.customer_models import _CUSTOMER_SCHEMA
 
 
 def valid_json(validated_func):
     "Function for decorating validated functions"
+
     @wraps(validated_func)
     def validator(*args, **kwargs):
         "Function validates json in request"
@@ -29,16 +29,6 @@ def valid_json(validated_func):
         return validated_func(*args, **kwargs)
 
     return validator
-
-
-class CustomerSchema(Schema):
-    """
-    Class implements schema validation for customer entity
-    """
-    customer_id = m_fields.Str()
-    name = m_fields.Str(required=True)
-    site_code = m_fields.Str(required=True)
-    status_expiration_date = m_fields.Date()
 
 
 class CustomerResponse(object):
@@ -122,9 +112,6 @@ class CustomerResponse(object):
         }
 
 
-_CUSTOMER_SCHEMA = CustomerSchema()
-
-
 class CustomerResource(Resource):
     """
     Class for representing customer resource
@@ -153,8 +140,7 @@ class CustomerResource(Resource):
         customer_entity = DATA_SERVICE.update(data)
         customer_response = CustomerResponse.success()
         if customer_entity:
-            customer_response.data = _CUSTOMER_SCHEMA.dump(
-                customer_entity)
+            customer_response.data = _CUSTOMER_SCHEMA.dump(customer_entity)
         else:
             customer_response = CustomerResponse.not_found(
                 "Customer with id {0} "
@@ -166,8 +152,7 @@ class CustomerResource(Resource):
         customer_response = CustomerResponse.success()
         customer_entity = DATA_SERVICE.delete(customer_id)
         if customer_entity:
-            customer_response.data = _CUSTOMER_SCHEMA.dump(
-                customer_entity)
+            customer_response.data = _CUSTOMER_SCHEMA.dump(customer_entity)
         else:
             customer_response = CustomerResponse.not_found(
                 "Customer with id = {0} "
