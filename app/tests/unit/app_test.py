@@ -266,6 +266,60 @@ class CustomerCollectionResourceTest(unittest.TestCase):
                                        _CUSTOMER_ATTRIBUTES, ["customer_id"])
             customersvc.app.DATA_SERVICE.delete.assert_called_once()
 
+    def test_get_not_found(self):
+        "Test customer not found"
+        customersvc.app.DATA_SERVICE.read.return_value = None
+        with customersvc.app.FLASK_APP.app_context():
+            resource = customersvc.app.CustomerResource()
+            customer_resp, status = resource.get(
+                "e6c53676-6af2-11e8-99b8-0242ac130003")
+            customer = customer_resp["data"]
+            message = "Customer with id "\
+                "{0} isn't found"\
+                .format("e6c53676-6af2-11e8-99b8-0242ac130003")
+            self.assertEqual(status, 404)
+            self.assertEqual(customer, None)
+            self.assertEqual(customer_resp["message"], message)
+            customersvc.app.DATA_SERVICE.read.assert_called_once()
+
+    def test_put_not_found(self):
+        "Test successfull customer creation"
+        request_body = {
+            "name": "New name 1",
+            "site_code": "SCODE02",
+            "status_expiration_date": "2021-04-01 13:00:00"
+        }
+        customersvc.app.DATA_SERVICE.update.return_value = None
+        with customersvc.app.FLASK_APP.app_context():
+            client = customersvc.app.FLASK_APP.test_client()
+            resp = client.put(
+                "/customers/e6c53676-6af2-11e8-99b8-0242ac130003",
+                content_type="application/json",
+                data=json.dumps(request_body))
+            service_response = resp.get_json()
+            message = "Customer with id "\
+                "{0} isn't found"\
+                .format("e6c53676-6af2-11e8-99b8-0242ac130003")
+            self.assertEqual(service_response["status"], 404)
+            self.assertEqual(service_response["message"], message)
+            customersvc.app.DATA_SERVICE.update.assert_called_once()
+
+    def test_delete_not_found(self):
+        "Test successfull customer creation"
+        customersvc.app.DATA_SERVICE.delete.return_value = None
+        with customersvc.app.FLASK_APP.app_context():
+            client = customersvc.app.FLASK_APP.test_client()
+            resp = client.delete(
+                "/customers/e6c53676-6af2-11e8-99b8-0242ac130003",
+                content_type="application/json")
+            service_response = resp.get_json()
+            self.assertEqual(service_response["status"], 404)
+            message = "Customer with id "\
+                "{0} isn't found"\
+                .format("e6c53676-6af2-11e8-99b8-0242ac130003")
+            self.assertEqual(service_response["message"], message)
+            customersvc.app.DATA_SERVICE.delete.assert_called_once()
+
     def assert_dict_eq_to_obj(self, tested_dict, tested_obj, attrs,
                               excluded_attrs):
         "Asserts attributes of a tested_dict and tested_obj are equal"

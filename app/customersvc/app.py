@@ -125,7 +125,7 @@ class CustomerResource(Resource):
             customer_response.data = _CUSTOMER_SCHEMA.dump(customer)
         else:
             customer_response = CustomerResponse.not_found(
-                message="Customer with id ="
+                message="Customer with id "
                 "{0} isn't found".format(customer_id))
         return customer_response.as_dict(), customer_response.status
 
@@ -155,7 +155,7 @@ class CustomerResource(Resource):
             customer_response.data = _CUSTOMER_SCHEMA.dump(customer_entity)
         else:
             customer_response = CustomerResponse.not_found(
-                "Customer with id = {0} "
+                "Customer with id {0} "
                 "isn't found".format(customer_id))
         return customer_response.as_dict(), customer_response.status
 
